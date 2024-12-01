@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ow-mods/owml/master/schemas/manifest_schema.json",
+  "filename": "TravelersPack.dll",
+  "author": "Etherpod",
+  "name": "Traveler's Pack",
+  "uniqueName": "Etherpod.TravelersPack",
+  "version": "1.0.0",
+  "owmlVersion": "2.14.0",
+  "dependencies": []
+}
