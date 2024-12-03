@@ -13,6 +13,7 @@ public class BackpackController : MonoBehaviour
     private bool _visible = false;
     private ScreenPrompt _cycleItemPrompt;
     private ScreenPrompt _packUpPrompt;
+    private ScreenPrompt _emptyPrompt;
 
     private void Awake()
     {
@@ -23,10 +24,12 @@ public class BackpackController : MonoBehaviour
             "<CMD1><CMD2> Cycle Selected Item", 
             ScreenPrompt.MultiCommandType.CUSTOM_BOTH, 0, ScreenPrompt.DisplayState.Normal, false);
         _packUpPrompt = new ScreenPrompt(InputLibrary.interactSecondary, "Pack up", 0, ScreenPrompt.DisplayState.Normal);
+        _emptyPrompt = new ScreenPrompt("No items stored");
     }
 
     private void Start()
     {
+        _emptyPrompt.SetDisplayState(ScreenPrompt.DisplayState.GrayedOut);
         SetVisibility(false);
     }
 
@@ -36,13 +39,13 @@ public class BackpackController : MonoBehaviour
 
         _cycleItemPrompt.SetVisibility(false);
         _packUpPrompt.SetVisibility(false);
+        _emptyPrompt.SetVisibility(false);
 
         // Player is holding something to store
         if (item != null)
         {
             if (!_interactionEnabled)
             {
-                //_interactVolume.EnableInteraction();
                 SetInteractVisibility(true);
                 _interactionEnabled = true;
             }
@@ -56,7 +59,6 @@ public class BackpackController : MonoBehaviour
             {
                 if (!_interactionEnabled)
                 {
-                    //_interactVolume.EnableInteraction();
                     SetInteractVisibility(true);
                     _interactionEnabled = true;
                 }
@@ -78,11 +80,14 @@ public class BackpackController : MonoBehaviour
                 }
             }
             // Backpack is empty
-            else if (_interactionEnabled)
+            else
             {
-                //_interactVolume.DisableInteraction();
-                SetInteractVisibility(false);
-                _interactionEnabled = false;
+                _emptyPrompt.SetVisibility(true);
+                if (_interactionEnabled)
+                {
+                    SetInteractVisibility(false);
+                    _interactionEnabled = false;
+                }
             }
         }
 
@@ -115,6 +120,7 @@ public class BackpackController : MonoBehaviour
     private void OnGainFocus()
     {
         _interactVolumeFocus = true;
+        Locator.GetPromptManager().AddScreenPrompt(_emptyPrompt, PromptPosition.Center, false);
         Locator.GetPromptManager().AddScreenPrompt(_cycleItemPrompt, PromptPosition.Center, false);
         Locator.GetPromptManager().AddScreenPrompt(_packUpPrompt, PromptPosition.Center, false);
     }
@@ -122,6 +128,7 @@ public class BackpackController : MonoBehaviour
     private void OnLoseFocus()
     {
         _interactVolumeFocus = false;
+        Locator.GetPromptManager().RemoveScreenPrompt(_emptyPrompt, PromptPosition.Center);
         Locator.GetPromptManager().RemoveScreenPrompt(_cycleItemPrompt, PromptPosition.Center);
         Locator.GetPromptManager().RemoveScreenPrompt(_packUpPrompt, PromptPosition.Center);
     }
@@ -133,12 +140,10 @@ public class BackpackController : MonoBehaviour
             SetInteractVisibility(false);
             _interactVolume.LoseFocus();
             _interactionEnabled = false;
-            //_interactVolume.DisableInteraction();
         }
         _meshParent.SetActive(visible);
         enabled = visible;
         _visible = visible;
-        TravelersPack.WriteDebugMessage(visible);
     }
 
     public bool IsVisible()
@@ -149,6 +154,18 @@ public class BackpackController : MonoBehaviour
     private void SetInteractVisibility(bool visible)
     {
         _interactVolume.UpdateInteractionVisibility(visible);
+    }
+
+    public void PlaceBackpack()
+    {
+        if (Physics.Raycast(Locator.GetPlayerTransform().position, -Locator.GetPlayerTransform().up, 
+            out RaycastHit hit, 2f, OWLayerMask.physicalMask))
+        {
+            transform.position = hit.point;
+            transform.up = hit.normal;
+            transform.parent = hit.collider.GetAttachedOWRigidbody().transform;
+            SetVisibility(true);
+        }
     }
 
     private void OnDestroy()

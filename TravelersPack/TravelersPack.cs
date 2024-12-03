@@ -13,6 +13,7 @@ public class TravelersPack : ModBehaviour
 
     private AssetBundle _assetBundle;
     private BackpackController _backpack;
+    private ScreenPrompt _unpackPrompt;
     private bool InGame => LoadManager.GetCurrentScene() == OWScene.SolarSystem ||
         LoadManager.GetCurrentScene() == OWScene.EyeOfTheUniverse;
 
@@ -33,6 +34,7 @@ public class TravelersPack : ModBehaviour
         // Example of accessing game code.
         OnCompleteSceneLoad(OWScene.TitleScreen, OWScene.TitleScreen); // We start on title screen
         LoadManager.OnCompleteSceneLoad += OnCompleteSceneLoad;
+        LoadManager.OnStartSceneLoad += OnStartSceneLoad;
 
         enabled = false;
     }
@@ -51,21 +53,50 @@ public class TravelersPack : ModBehaviour
         AssetBundleUtilities.ReplaceShaders(cube);
         _backpack = Instantiate(cube).GetComponent<BackpackController>();
 
-        enabled = true;
+        _unpackPrompt = new ScreenPrompt(InputLibrary.interactSecondary, "Place Traveler's Pack", 0, ScreenPrompt.DisplayState.Normal);
+
+        ModHelper.Events.Unity.RunWhen(() => Locator._promptManager != null, () =>
+        {
+            Locator.GetPromptManager().AddScreenPrompt(_unpackPrompt, PromptPosition.UpperLeft, false);
+            enabled = true;
+        });
+    }
+
+    public void OnStartSceneLoad(OWScene previousScene, OWScene newScene)
+    {
+        if (previousScene == OWScene.SolarSystem || previousScene == OWScene.SolarSystem)
+        {
+            Locator.GetPromptManager().RemoveScreenPrompt(_unpackPrompt);
+        }
     }
 
     private void Update()
     {
         if (InGame)
         {
-            if ((Locator.GetPlayerController()?.IsGrounded() ?? false)
+            _unpackPrompt.SetVisibility(false);
+
+            if (Locator.GetPlayerController().IsGrounded()
                 && OWInput.IsNewlyPressed(InputLibrary.interactSecondary, InputMode.Character)
-                && !_backpack.IsVisible())
+                && !_backpack.IsVisible()
+                && !Locator.GetPlayerCamera().GetComponent<FirstPersonManipulator>().HasFocusedInteractible())
             {
-                WriteDebugMessage("ah");
-                _backpack.transform.position = Locator.GetPlayerTransform().position;
-                _backpack.transform.parent = Locator.GetPlayerSectorDetector().GetLastEnteredSector().transform;
-                _backpack.SetVisibility(true);
+                _backpack.PlaceBackpack();
+            }
+
+            if (!_backpack.IsVisible() && OWInput.IsInputMode(InputMode.Character))
+            {
+                _unpackPrompt.SetVisibility(true);
+
+                if (Locator.GetPlayerController().IsGrounded()
+                    && !Locator.GetPlayerCamera().GetComponent<FirstPersonManipulator>().HasFocusedInteractible())
+                {
+                    _unpackPrompt.SetDisplayState(ScreenPrompt.DisplayState.Normal);
+                }
+                else
+                {
+                    _unpackPrompt.SetDisplayState(ScreenPrompt.DisplayState.GrayedOut);
+                }
             }
         }
     }

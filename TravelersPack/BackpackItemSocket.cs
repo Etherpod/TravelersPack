@@ -31,7 +31,6 @@ public class BackpackItemSocket : OWItemSocket
             if (!_storedItems.Contains(item))
             {
                 _storedItems.Add(item);
-                TravelersPack.WriteDebugMessage("Count: " + _storedItems.Count);
                 item.SetVisible(false);
 
                 _storedItemIndex = _storedItems.Count - 1;
@@ -50,7 +49,6 @@ public class BackpackItemSocket : OWItemSocket
         if (_storedItems.Contains(result))
         {
             _storedItems.Remove(result);
-            TravelersPack.WriteDebugMessage("Count: " + _storedItems.Count);
             result.SetVisible(true);
 
             if (_storedItems.Count > 0)
