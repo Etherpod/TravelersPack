@@ -49,9 +49,9 @@ public class TravelersPack : ModBehaviour
 
         ModHelper.Console.WriteLine("Loaded into solar system!", MessageType.Success);
 
-        GameObject cube = (GameObject)_assetBundle.LoadAsset("Assets/Backpack.prefab");
-        AssetBundleUtilities.ReplaceShaders(cube);
-        _backpack = Instantiate(cube).GetComponent<BackpackController>();
+        GameObject pack = (GameObject)_assetBundle.LoadAsset("Assets/TravelersPack/Backpack.prefab");
+        AssetBundleUtilities.ReplaceShaders(pack);
+        _backpack = Instantiate(pack).GetComponent<BackpackController>();
 
         _unpackPrompt = new ScreenPrompt(InputLibrary.interactSecondary, "Place Traveler's Pack", 0, ScreenPrompt.DisplayState.Normal);
 
@@ -99,6 +99,11 @@ public class TravelersPack : ModBehaviour
                 }
             }
         }
+    }
+
+    public static AudioClip LoadAudio(string filepath)
+    {
+        return (AudioClip)Instance._assetBundle.LoadAsset(filepath);
     }
 
     public static void WriteDebugMessage(object msg)

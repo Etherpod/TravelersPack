@@ -6,7 +6,8 @@ public class BackpackController : MonoBehaviour
 {
     [SerializeField] private BackpackInteractVolume _interactVolume = null;
     [SerializeField] private BackpackItemSocket _socket = null;
-    [SerializeField] private GameObject _meshParent;
+    [SerializeField] private GameObject _meshParent = null;
+    [SerializeField] private OWAudioSource _oneShotAudio = null;
 
     private bool _interactionEnabled = false;
     private bool _interactVolumeFocus = false;
@@ -14,6 +15,7 @@ public class BackpackController : MonoBehaviour
     private ScreenPrompt _cycleItemPrompt;
     private ScreenPrompt _packUpPrompt;
     private ScreenPrompt _emptyPrompt;
+    private AudioClip _equipPackClip;
 
     private void Awake()
     {
@@ -25,6 +27,7 @@ public class BackpackController : MonoBehaviour
             ScreenPrompt.MultiCommandType.CUSTOM_BOTH, 0, ScreenPrompt.DisplayState.Normal, false);
         _packUpPrompt = new ScreenPrompt(InputLibrary.interactSecondary, "Pack up", 0, ScreenPrompt.DisplayState.Normal);
         _emptyPrompt = new ScreenPrompt("No items stored");
+        _equipPackClip = TravelersPack.LoadAudio("Assets/TravelersPack/EquipPack.ogg");
     }
 
     private void Start()
@@ -72,10 +75,12 @@ public class BackpackController : MonoBehaviour
                     if (OWInput.IsNewlyPressed(InputLibrary.toolOptionRight))
                     {
                         _socket.CycleCurrentItem(true);
+                        _oneShotAudio.PlayOneShot(AudioType.Menu_LeftRight);
                     }
                     else if (OWInput.IsNewlyPressed(InputLibrary.toolOptionLeft))
                     {
                         _socket.CycleCurrentItem(false);
+                        _oneShotAudio.PlayOneShot(AudioType.Menu_LeftRight);
                     }
                 }
             }
@@ -97,6 +102,7 @@ public class BackpackController : MonoBehaviour
             if (OWInput.IsNewlyPressed(InputLibrary.interactSecondary))
             {
                 SetVisibility(false);
+                _oneShotAudio.PlayOneShot(_equipPackClip);
             }
         }
     }
@@ -109,11 +115,13 @@ public class BackpackController : MonoBehaviour
         if (item != null)
         {
             Locator.GetToolModeSwapper().GetItemCarryTool().SocketItem(_socket);
+            _oneShotAudio.PlayOneShot(AudioType.ToolTranslatorUnequip);
         }
         else
         {
             item = _socket.RemoveFromSocket();
             Locator.GetToolModeSwapper().GetItemCarryTool().PickUpItemInstantly(item);
+            _oneShotAudio.PlayOneShot(AudioType.ToolTranslatorEquip);
         }
     }
 
@@ -142,6 +150,7 @@ public class BackpackController : MonoBehaviour
             _interactionEnabled = false;
         }
         _meshParent.SetActive(visible);
+        _interactVolume.SetInteractionEnabled(visible);
         enabled = visible;
         _visible = visible;
     }
@@ -165,6 +174,7 @@ public class BackpackController : MonoBehaviour
             transform.up = hit.normal;
             transform.parent = hit.collider.GetAttachedOWRigidbody().transform;
             SetVisibility(true);
+            _oneShotAudio.PlayOneShot(AudioType.LandingGrass);
         }
     }
 
