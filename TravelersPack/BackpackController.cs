@@ -172,6 +172,9 @@ public class BackpackController : MonoBehaviour
         {
             transform.position = hit.point;
             transform.up = hit.normal;
+            Vector3 playerForward = -Locator.GetPlayerCameraController().transform.right;
+            Vector3 projected = -Vector3.ProjectOnPlane(playerForward, transform.up);
+            transform.LookAt(transform.position + projected, transform.up);
             transform.parent = hit.collider.GetAttachedOWRigidbody().transform;
             SetVisibility(true);
             _oneShotAudio.PlayOneShot(AudioType.LandingGrass);
