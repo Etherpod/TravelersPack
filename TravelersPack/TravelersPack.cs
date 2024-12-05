@@ -76,27 +76,29 @@ public class TravelersPack : ModBehaviour
         {
             _unpackPrompt.SetVisibility(false);
 
-            if (Locator.GetPlayerController().IsGrounded()
-                && OWInput.IsNewlyPressed(InputLibrary.interactSecondary, InputMode.Character)
-                && !_backpack.IsVisible()
-                && !Locator.GetPlayerCamera().GetComponent<FirstPersonManipulator>().HasFocusedInteractible())
+            if (_backpack.IsVisible() || !OWInput.IsInputMode(InputMode.Character)
+                || PlayerState.InDreamWorld())
+            {
+                return;
+            }
+
+            bool readyToPlace = Locator.GetPlayerController().IsGrounded()
+                && !Locator.GetPlayerCamera().GetComponent<FirstPersonManipulator>().HasFocusedInteractible();
+
+            if (readyToPlace && OWInput.IsNewlyPressed(InputLibrary.interactSecondary, InputMode.Character))
             {
                 _backpack.PlaceBackpack();
             }
 
-            if (!_backpack.IsVisible() && OWInput.IsInputMode(InputMode.Character))
-            {
-                _unpackPrompt.SetVisibility(true);
+            _unpackPrompt.SetVisibility(true);
 
-                if (Locator.GetPlayerController().IsGrounded()
-                    && !Locator.GetPlayerCamera().GetComponent<FirstPersonManipulator>().HasFocusedInteractible())
-                {
-                    _unpackPrompt.SetDisplayState(ScreenPrompt.DisplayState.Normal);
-                }
-                else
-                {
-                    _unpackPrompt.SetDisplayState(ScreenPrompt.DisplayState.GrayedOut);
-                }
+            if (readyToPlace)
+            {
+                _unpackPrompt.SetDisplayState(ScreenPrompt.DisplayState.Normal);
+            }
+            else
+            {
+                _unpackPrompt.SetDisplayState(ScreenPrompt.DisplayState.GrayedOut);
             }
         }
     }
