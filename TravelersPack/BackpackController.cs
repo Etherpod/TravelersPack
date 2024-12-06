@@ -120,6 +120,7 @@ public class BackpackController : MonoBehaviour
         else
         {
             item = _socket.RemoveFromSocket();
+            item.OnCompleteUnsocket();
             Locator.GetToolModeSwapper().GetItemCarryTool().PickUpItemInstantly(item);
             _oneShotAudio.PlayOneShot(AudioType.ToolTranslatorEquip);
         }

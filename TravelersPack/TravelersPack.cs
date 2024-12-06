@@ -14,6 +14,7 @@ public class TravelersPack : ModBehaviour
     private AssetBundle _assetBundle;
     private BackpackController _backpack;
     private ScreenPrompt _unpackPrompt;
+    private FirstPersonManipulator _manipulator;
     private bool InGame => LoadManager.GetCurrentScene() == OWScene.SolarSystem ||
         LoadManager.GetCurrentScene() == OWScene.EyeOfTheUniverse;
 
@@ -58,6 +59,7 @@ public class TravelersPack : ModBehaviour
         ModHelper.Events.Unity.RunWhen(() => Locator._promptManager != null, () =>
         {
             Locator.GetPromptManager().AddScreenPrompt(_unpackPrompt, PromptPosition.UpperLeft, false);
+            _manipulator = Locator.GetPlayerCamera().GetComponent<FirstPersonManipulator>();
             enabled = true;
         });
     }
@@ -83,7 +85,7 @@ public class TravelersPack : ModBehaviour
             }
 
             bool readyToPlace = Locator.GetPlayerController().IsGrounded()
-                && !Locator.GetPlayerCamera().GetComponent<FirstPersonManipulator>().HasFocusedInteractible();
+                && !FocusedOnInteractible();
 
             if (readyToPlace && OWInput.IsNewlyPressed(InputLibrary.interactSecondary, InputMode.Character))
             {
@@ -103,6 +105,14 @@ public class TravelersPack : ModBehaviour
         }
     }
 
+    public bool FocusedOnInteractible()
+    {
+        return _manipulator.HasFocusedInteractible()
+            || _manipulator.GetFocusedNomaiText() != null
+            || _manipulator.GetFocusedItemSocket() != null
+            || _manipulator.GetFocusedOWItem() != null;
+    }
+
     public static AudioClip LoadAudio(string filepath)
     {
         return (AudioClip)Instance._assetBundle.LoadAsset(filepath);
@@ -111,5 +121,25 @@ public class TravelersPack : ModBehaviour
     public static void WriteDebugMessage(object msg)
     {
         Instance.ModHelper.Console.WriteLine(msg.ToString());
+    }
+}
+
+[HarmonyPatch]
+public static class TravelersPackPatches
+{
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(ItemTool), nameof(ItemTool.SocketItem))]
+    public static bool DisableSocketAudio(ItemTool __instance, OWItemSocket socket)
+    {
+        if (socket is BackpackItemSocket)
+        {
+            //Locator.GetPlayerAudioController().PlayInsertItem(this._heldItem.GetItemType());
+            socket.PlaceIntoSocket(__instance._heldItem);
+            __instance._heldItem = null;
+            Locator.GetToolModeSwapper().UnequipTool();
+            return false;
+        }
+
+        return true;
     }
 }

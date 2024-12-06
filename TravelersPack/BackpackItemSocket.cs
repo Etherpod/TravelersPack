@@ -26,26 +26,45 @@ public class BackpackItemSocket : OWItemSocket
     public override bool PlaceIntoSocket(OWItem item)
     {
         _socketedItem = null;
-        if (base.PlaceIntoSocket(item))
-        {
-            if (!_storedItems.Contains(item))
-            {
-                _storedItems.Add(item);
-                item.SetVisible(false);
 
-                _storedItemIndex = _storedItems.Count - 1;
-            }
-            return true;
-        }
-        else
+        if (!AcceptsItem(item) || _socketedItem != null)
         {
             return false;
         }
+        _socketedItem = item;
+        _socketedItem.SocketItem(this._socketTransform, this._sector);
+        //_socketedItem.PlaySocketAnimation();
+        if (OnSocketablePlaced != null)
+        {
+            OnSocketablePlaced(_socketedItem);
+        }
+        enabled = true;
+
+        if (!_storedItems.Contains(item))
+        {
+            _storedItems.Add(item);
+            item.SetVisible(false);
+
+            _storedItemIndex = _storedItems.Count - 1;
+        }
+        return true;
     }
 
     public override OWItem RemoveFromSocket()
     {
-        OWItem result = base.RemoveFromSocket();
+        //OWItem result = base.RemoveFromSocket();
+
+        _removedItem = _socketedItem;
+        _socketedItem = null;
+        if (OnSocketableRemoved != null && _removedItem != null)
+        {
+            OnSocketableRemoved(_removedItem);
+        }
+        //_removedItem.PlayUnsocketAnimation();
+        _removedItem.SetColliderActivation(true);
+        enabled = true;
+        OWItem result = _removedItem;
+
         if (_storedItems.Contains(result))
         {
             _storedItems.Remove(result);
