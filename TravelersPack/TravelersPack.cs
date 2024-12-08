@@ -11,6 +11,8 @@ public class TravelersPack : ModBehaviour
 {
     public static TravelersPack Instance;
 
+    public bool MarkerEnabled { get; private set; }
+
     private AssetBundle _assetBundle;
     private BackpackController _backpack;
     private ScreenPrompt _unpackPrompt;
@@ -31,6 +33,7 @@ public class TravelersPack : ModBehaviour
         new Harmony("Etherpod.TravelersPack").PatchAll(Assembly.GetExecutingAssembly());
 
         _assetBundle = AssetBundle.LoadFromFile(Path.Combine(ModHelper.Manifest.ModFolderPath, "assets/travelerspack"));
+        MarkerEnabled = ModHelper.Config.GetSettingsValue<bool>("enableMapMarker");
 
         // Example of accessing game code.
         OnCompleteSceneLoad(OWScene.TitleScreen, OWScene.TitleScreen); // We start on title screen
@@ -121,6 +124,15 @@ public class TravelersPack : ModBehaviour
     public static void WriteDebugMessage(object msg)
     {
         Instance.ModHelper.Console.WriteLine(msg.ToString());
+    }
+
+    public override void Configure(IModConfig config)
+    {
+        MarkerEnabled = config.GetSettingsValue<bool>("enableMapMarker");
+        if (_backpack != null)
+        {
+            _backpack.GetComponent<BackpackDistanceMarker>().RefreshOwnVisibility();
+        }
     }
 }
 

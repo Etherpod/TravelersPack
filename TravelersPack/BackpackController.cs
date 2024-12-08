@@ -4,6 +4,10 @@ namespace TravelersPack;
 
 public class BackpackController : MonoBehaviour
 {
+    public delegate void BackpackPlaceEvent();
+    public event BackpackPlaceEvent OnPlaceBackpack;
+    public event BackpackPlaceEvent OnRetrieveBackpack;
+
     [SerializeField] private BackpackInteractVolume _interactVolume = null;
     [SerializeField] private BackpackItemSocket _socket = null;
     [SerializeField] private GameObject _meshParent = null;
@@ -85,7 +89,7 @@ public class BackpackController : MonoBehaviour
                 }
             }
             // Backpack is empty
-            else
+            else if (OWInput.IsInputMode(InputMode.Character))
             {
                 _emptyPrompt.SetVisibility(true);
                 if (_interactionEnabled)
@@ -103,6 +107,8 @@ public class BackpackController : MonoBehaviour
             {
                 SetVisibility(false);
                 _oneShotAudio.PlayOneShot(_equipPackClip);
+
+                OnRetrieveBackpack?.Invoke();
             }
         }
     }
@@ -179,6 +185,8 @@ public class BackpackController : MonoBehaviour
             transform.parent = hit.collider.GetAttachedOWRigidbody().transform;
             SetVisibility(true);
             _oneShotAudio.PlayOneShot(AudioType.LandingGrass);
+
+            OnPlaceBackpack?.Invoke();
         }
     }
 
