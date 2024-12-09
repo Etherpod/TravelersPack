@@ -19,6 +19,7 @@ public class BackpackController : MonoBehaviour
     private ScreenPrompt _cycleItemPrompt;
     private ScreenPrompt _packUpPrompt;
     private ScreenPrompt _emptyPrompt;
+    private ScreenPrompt _fullPrompt;
     private AudioClip _equipPackClip;
 
     private void Awake()
@@ -31,12 +32,14 @@ public class BackpackController : MonoBehaviour
             ScreenPrompt.MultiCommandType.CUSTOM_BOTH, 0, ScreenPrompt.DisplayState.Normal, false);
         _packUpPrompt = new ScreenPrompt(InputLibrary.interactSecondary, "Pack up", 0, ScreenPrompt.DisplayState.Normal);
         _emptyPrompt = new ScreenPrompt("No items stored");
+        _fullPrompt = new ScreenPrompt("Backpack is full");
         _equipPackClip = TravelersPack.LoadAudio("Assets/TravelersPack/EquipPack.ogg");
     }
 
     private void Start()
     {
         _emptyPrompt.SetDisplayState(ScreenPrompt.DisplayState.GrayedOut);
+        _fullPrompt.SetDisplayState(ScreenPrompt.DisplayState.GrayedOut);
         SetVisibility(false);
     }
 
@@ -47,16 +50,29 @@ public class BackpackController : MonoBehaviour
         _cycleItemPrompt.SetVisibility(false);
         _packUpPrompt.SetVisibility(false);
         _emptyPrompt.SetVisibility(false);
+        _fullPrompt.SetVisibility(false);
 
         // Player is holding something to store
         if (item != null)
         {
-            if (!_interactionEnabled)
+            if (_socket.CanAddItems())
             {
-                SetInteractVisibility(true);
-                _interactionEnabled = true;
+                if (!_interactionEnabled)
+                {
+                    SetInteractVisibility(true);
+                    _interactionEnabled = true;
+                }
+                _interactVolume.ChangePrompt("Store " + item.GetDisplayName());
             }
-            _interactVolume.ChangePrompt("Store " + item.GetDisplayName());
+            else if (OWInput.IsInputMode(InputMode.Character))
+            {
+                _fullPrompt.SetVisibility(true);
+                if (_interactionEnabled)
+                {
+                    SetInteractVisibility(false);
+                    _interactionEnabled = false;
+                }
+            }
         }
         // Player wants to remove something
         else
@@ -136,6 +152,7 @@ public class BackpackController : MonoBehaviour
     {
         _interactVolumeFocus = true;
         Locator.GetPromptManager().AddScreenPrompt(_emptyPrompt, PromptPosition.Center, false);
+        Locator.GetPromptManager().AddScreenPrompt(_fullPrompt, PromptPosition.Center, false);
         Locator.GetPromptManager().AddScreenPrompt(_cycleItemPrompt, PromptPosition.Center, false);
         Locator.GetPromptManager().AddScreenPrompt(_packUpPrompt, PromptPosition.Center, false);
     }
@@ -144,6 +161,7 @@ public class BackpackController : MonoBehaviour
     {
         _interactVolumeFocus = false;
         Locator.GetPromptManager().RemoveScreenPrompt(_emptyPrompt, PromptPosition.Center);
+        Locator.GetPromptManager().RemoveScreenPrompt(_fullPrompt, PromptPosition.Center);
         Locator.GetPromptManager().RemoveScreenPrompt(_cycleItemPrompt, PromptPosition.Center);
         Locator.GetPromptManager().RemoveScreenPrompt(_packUpPrompt, PromptPosition.Center);
     }

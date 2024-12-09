@@ -9,6 +9,8 @@ namespace TravelersPack;
 
 public class TravelersPack : ModBehaviour
 {
+    private readonly bool debugEnabled = false;
+
     public static TravelersPack Instance;
 
     public bool MarkerEnabled { get; private set; }
@@ -27,9 +29,6 @@ public class TravelersPack : ModBehaviour
 
     public void Start()
     {
-        // Starting here, you'll have access to OWML's mod helper.
-        ModHelper.Console.WriteLine($"My mod {nameof(TravelersPack)} is loaded!", MessageType.Success);
-
         new Harmony("Etherpod.TravelersPack").PatchAll(Assembly.GetExecutingAssembly());
 
         _assetBundle = AssetBundle.LoadFromFile(Path.Combine(ModHelper.Manifest.ModFolderPath, "assets/travelerspack"));
@@ -50,8 +49,6 @@ public class TravelersPack : ModBehaviour
             enabled = false;
             return;
         }
-
-        ModHelper.Console.WriteLine("Loaded into solar system!", MessageType.Success);
 
         GameObject pack = (GameObject)_assetBundle.LoadAsset("Assets/TravelersPack/Backpack.prefab");
         AssetBundleUtilities.ReplaceShaders(pack);
@@ -123,7 +120,10 @@ public class TravelersPack : ModBehaviour
 
     public static void WriteDebugMessage(object msg)
     {
-        Instance.ModHelper.Console.WriteLine(msg.ToString());
+        if (Instance.debugEnabled)
+        {
+            Instance.ModHelper.Console.WriteLine(msg.ToString());
+        }
     }
 
     public override void Configure(IModConfig config)

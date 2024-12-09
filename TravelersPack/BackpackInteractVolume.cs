@@ -1,7 +1,4 @@
-﻿using System;
-using System.Reflection;
-
-namespace TravelersPack;
+﻿namespace TravelersPack;
 
 public class BackpackInteractVolume : InteractReceiver
 {

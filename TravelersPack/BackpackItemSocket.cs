@@ -7,6 +7,7 @@ public class BackpackItemSocket : OWItemSocket
 {
     private List<OWItem> _storedItems = [];
     private int _storedItemIndex;
+    private readonly int _maxItems = 9;
 
     public override bool AcceptsItem(OWItem item)
     {
@@ -18,9 +19,19 @@ public class BackpackItemSocket : OWItemSocket
         return _storedItems.Count > 0;
     }
 
+    public bool CanAddItems()
+    {
+        return _storedItems.Count < _maxItems;
+    }
+
     public int GetNumberOfStoredItems()
     {
         return _storedItems.Count;
+    }
+
+    public int GetMaxItems()
+    {
+        return _maxItems;
     }
 
     public override bool PlaceIntoSocket(OWItem item)
@@ -43,7 +54,7 @@ public class BackpackItemSocket : OWItemSocket
         if (!_storedItems.Contains(item))
         {
             _storedItems.Add(item);
-            item.SetVisible(false);
+            item.gameObject.SetActive(false);
 
             _storedItemIndex = _storedItems.Count - 1;
         }
@@ -68,7 +79,7 @@ public class BackpackItemSocket : OWItemSocket
         if (_storedItems.Contains(result))
         {
             _storedItems.Remove(result);
-            result.SetVisible(true);
+            result.gameObject.SetActive(true);
 
             if (_storedItems.Count > 0)
             {

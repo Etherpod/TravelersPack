@@ -1,8 +1,8 @@
 ![Traveler's Pack Banner](banner.png)
 
-Gives you a placeable backpack to store items in. Now you can bring all of your items around with ease!
+Gives you a placeable backpack to store items in. Now you can transport all of your items with ease!
 
-To place the backpack, stand on a solid surface and press the key shown on the button prompt on the top left of the screen. If you're currently interacting with something, you won't be able to place it down.
+To place the backpack, stand on a solid surface and press the button shown on the top-left button prompt. If you're currently interacting with something, you won't be able to place it down.
 
 You can store items in it by holding them and interacting with the backpack. When you have multiple items stored, you can cycle between them using the left and right tool buttons.
 
