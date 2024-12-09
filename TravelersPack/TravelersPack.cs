@@ -50,6 +50,30 @@ public class TravelersPack : ModBehaviour
             return;
         }
 
+        /*GameObject pack = (GameObject)_assetBundle.LoadAsset("Assets/TravelersPack/Backpack.prefab");
+        AssetBundleUtilities.ReplaceShaders(pack);
+        _backpack = Instantiate(pack).GetComponent<BackpackController>();
+
+        _unpackPrompt = new ScreenPrompt(InputLibrary.interactSecondary, "Place Traveler's Pack", 0, ScreenPrompt.DisplayState.Normal);
+
+        ModHelper.Events.Unity.RunWhen(() => Locator._promptManager != null, () =>
+        {
+            Locator.GetPromptManager().AddScreenPrompt(_unpackPrompt, PromptPosition.UpperLeft, false);
+            _manipulator = Locator.GetPlayerCamera().GetComponent<FirstPersonManipulator>();
+            enabled = true;
+        });*/
+    }
+
+    public void OnStartSceneLoad(OWScene previousScene, OWScene newScene)
+    {
+        if (previousScene == OWScene.SolarSystem || previousScene == OWScene.EyeOfTheUniverse)
+        {
+            Locator.GetPromptManager().RemoveScreenPrompt(_unpackPrompt);
+        }
+    }
+
+    public void OnPlayerLoad()
+    {
         GameObject pack = (GameObject)_assetBundle.LoadAsset("Assets/TravelersPack/Backpack.prefab");
         AssetBundleUtilities.ReplaceShaders(pack);
         _backpack = Instantiate(pack).GetComponent<BackpackController>();
@@ -64,14 +88,6 @@ public class TravelersPack : ModBehaviour
         });
     }
 
-    public void OnStartSceneLoad(OWScene previousScene, OWScene newScene)
-    {
-        if (previousScene == OWScene.SolarSystem || previousScene == OWScene.SolarSystem)
-        {
-            Locator.GetPromptManager().RemoveScreenPrompt(_unpackPrompt);
-        }
-    }
-
     private void Update()
     {
         if (InGame)
@@ -79,7 +95,7 @@ public class TravelersPack : ModBehaviour
             _unpackPrompt.SetVisibility(false);
 
             if (_backpack.IsVisible() || !OWInput.IsInputMode(InputMode.Character)
-                || PlayerState.InDreamWorld())
+                || (PlayerState.InDreamWorld() && !PlayerState.IsWearingSuit()))
             {
                 return;
             }
@@ -153,5 +169,16 @@ public static class TravelersPackPatches
         }
 
         return true;
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(PlayerBody), nameof(PlayerBody.Awake))]
+    public static void InitializePack()
+    {
+        if (LoadManager.GetCurrentScene() == OWScene.SolarSystem 
+            || LoadManager.GetCurrentScene() == OWScene.EyeOfTheUniverse)
+        {
+            TravelersPack.Instance.OnPlayerLoad();
+        }
     }
 }
