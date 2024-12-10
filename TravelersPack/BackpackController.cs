@@ -16,6 +16,7 @@ public class BackpackController : MonoBehaviour
     private bool _interactionEnabled = false;
     private bool _interactVolumeFocus = false;
     private bool _visible = false;
+    private bool _ownsPack;
     private ScreenPrompt _cycleItemPrompt;
     private ScreenPrompt _packUpPrompt;
     private ScreenPrompt _emptyPrompt;
@@ -34,6 +35,7 @@ public class BackpackController : MonoBehaviour
         _emptyPrompt = new ScreenPrompt("No items stored");
         _fullPrompt = new ScreenPrompt("Backpack is full");
         _equipPackClip = TravelersPack.LoadAudio("Assets/TravelersPack/EquipPack.ogg");
+        _ownsPack = QSBHelper.IsHost;
     }
 
     private void Start()
@@ -121,10 +123,11 @@ public class BackpackController : MonoBehaviour
             _packUpPrompt.SetVisibility(true);
             if (OWInput.IsNewlyPressed(InputLibrary.interactSecondary))
             {
-                SetVisibility(false);
-                _oneShotAudio.PlayOneShot(_equipPackClip);
-
-                OnRetrieveBackpack?.Invoke();
+                RetrieveBackpack(Locator.GetPlayerTransform(), true);
+                if (QSBHelper.InMultiplayer)
+                {
+                    QSBHelper.SendRetrieveMessage();
+                }
             }
         }
     }
@@ -141,10 +144,14 @@ public class BackpackController : MonoBehaviour
         }
         else
         {
-            item = _socket.RemoveFromSocket();
-            item.OnCompleteUnsocket();
-            Locator.GetToolModeSwapper().GetItemCarryTool().PickUpItemInstantly(item);
-            _oneShotAudio.PlayOneShot(AudioType.ToolTranslatorEquip);
+            if (QSBHelper.InMultiplayer)
+            {
+                QSBHelper.SendTakeItemMessage(_socket.GetCurrentItemIndex());
+            }
+            else
+            {
+                RemoveCurrentItem();
+            }
         }
     }
 
@@ -185,14 +192,30 @@ public class BackpackController : MonoBehaviour
         return _visible;
     }
 
+    public bool IsPackOwner()
+    {
+        return _ownsPack;
+    }
+
+    public void SetSocketItemIndex(int index)
+    {
+        _socket.SetItemIndex(index);
+    }
+
+    public void RemoveCurrentItem()
+    {
+        Locator.GetToolModeSwapper().GetItemCarryTool().StartUnsocketItem(_socket);
+        _oneShotAudio.PlayOneShot(AudioType.ToolTranslatorEquip);
+    }
+
     private void SetInteractVisibility(bool visible)
     {
         _interactVolume.UpdateInteractionVisibility(visible);
     }
 
-    public void PlaceBackpack()
+    public void PlaceBackpack(Transform playerTransform)
     {
-        if (Physics.Raycast(Locator.GetPlayerTransform().position, -Locator.GetPlayerTransform().up, 
+        if (Physics.Raycast(playerTransform.position, -playerTransform.up,
             out RaycastHit hit, 2f, OWLayerMask.physicalMask))
         {
             transform.position = hit.point;
@@ -206,6 +229,17 @@ public class BackpackController : MonoBehaviour
 
             OnPlaceBackpack?.Invoke();
         }
+    }
+
+    public void RetrieveBackpack(Transform playerTransform, bool ownsPack)
+    {
+        SetVisibility(false);
+        _oneShotAudio.PlayOneShot(_equipPackClip);
+        transform.parent = playerTransform;
+        transform.localPosition = Vector3.zero;
+        _ownsPack = ownsPack;
+
+        OnRetrieveBackpack?.Invoke();
     }
 
     private void OnDestroy()

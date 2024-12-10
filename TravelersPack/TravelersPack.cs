@@ -9,7 +9,7 @@ namespace TravelersPack;
 
 public class TravelersPack : ModBehaviour
 {
-    private readonly bool debugEnabled = false;
+    private readonly bool debugEnabled = true;
 
     public static TravelersPack Instance;
 
@@ -33,6 +33,7 @@ public class TravelersPack : ModBehaviour
 
         _assetBundle = AssetBundle.LoadFromFile(Path.Combine(ModHelper.Manifest.ModFolderPath, "assets/travelerspack"));
         MarkerEnabled = ModHelper.Config.GetSettingsValue<bool>("enableMapMarker");
+        QSBHelper.Initialize();
 
         // Example of accessing game code.
         OnCompleteSceneLoad(OWScene.TitleScreen, OWScene.TitleScreen); // We start on title screen
@@ -50,30 +51,6 @@ public class TravelersPack : ModBehaviour
             return;
         }
 
-        /*GameObject pack = (GameObject)_assetBundle.LoadAsset("Assets/TravelersPack/Backpack.prefab");
-        AssetBundleUtilities.ReplaceShaders(pack);
-        _backpack = Instantiate(pack).GetComponent<BackpackController>();
-
-        _unpackPrompt = new ScreenPrompt(InputLibrary.interactSecondary, "Place Traveler's Pack", 0, ScreenPrompt.DisplayState.Normal);
-
-        ModHelper.Events.Unity.RunWhen(() => Locator._promptManager != null, () =>
-        {
-            Locator.GetPromptManager().AddScreenPrompt(_unpackPrompt, PromptPosition.UpperLeft, false);
-            _manipulator = Locator.GetPlayerCamera().GetComponent<FirstPersonManipulator>();
-            enabled = true;
-        });*/
-    }
-
-    public void OnStartSceneLoad(OWScene previousScene, OWScene newScene)
-    {
-        if (previousScene == OWScene.SolarSystem || previousScene == OWScene.EyeOfTheUniverse)
-        {
-            Locator.GetPromptManager().RemoveScreenPrompt(_unpackPrompt);
-        }
-    }
-
-    public void OnPlayerLoad()
-    {
         GameObject pack = (GameObject)_assetBundle.LoadAsset("Assets/TravelersPack/Backpack.prefab");
         AssetBundleUtilities.ReplaceShaders(pack);
         _backpack = Instantiate(pack).GetComponent<BackpackController>();
@@ -84,8 +61,20 @@ public class TravelersPack : ModBehaviour
         {
             Locator.GetPromptManager().AddScreenPrompt(_unpackPrompt, PromptPosition.UpperLeft, false);
             _manipulator = Locator.GetPlayerCamera().GetComponent<FirstPersonManipulator>();
+            if (QSBHelper.InMultiplayer)
+            {
+                QSBHelper.Start();
+            }
             enabled = true;
         });
+    }
+
+    public void OnStartSceneLoad(OWScene previousScene, OWScene newScene)
+    {
+        if (previousScene == OWScene.SolarSystem || previousScene == OWScene.EyeOfTheUniverse)
+        {
+            Locator.GetPromptManager().RemoveScreenPrompt(_unpackPrompt);
+        }
     }
 
     private void Update()
@@ -94,7 +83,8 @@ public class TravelersPack : ModBehaviour
         {
             _unpackPrompt.SetVisibility(false);
 
-            if (_backpack.IsVisible() || !OWInput.IsInputMode(InputMode.Character)
+            if (_backpack.IsVisible() || !_backpack.IsPackOwner() 
+                || !OWInput.IsInputMode(InputMode.Character)
                 || (PlayerState.InDreamWorld() && !PlayerState.IsWearingSuit()))
             {
                 return;
@@ -105,7 +95,11 @@ public class TravelersPack : ModBehaviour
 
             if (readyToPlace && OWInput.IsNewlyPressed(InputLibrary.interactSecondary, InputMode.Character))
             {
-                _backpack.PlaceBackpack();
+                _backpack.PlaceBackpack(Locator.GetPlayerTransform());
+                if (QSBHelper.InMultiplayer)
+                {
+                    QSBHelper.SendUnpackMessage();
+                }
             }
 
             _unpackPrompt.SetVisibility(true);
@@ -134,6 +128,11 @@ public class TravelersPack : ModBehaviour
         return (AudioClip)Instance._assetBundle.LoadAsset(filepath);
     }
 
+    public BackpackController GetBackpack()
+    {
+        return _backpack;
+    }
+
     public static void WriteDebugMessage(object msg)
     {
         if (Instance.debugEnabled)
@@ -155,30 +154,43 @@ public class TravelersPack : ModBehaviour
 [HarmonyPatch]
 public static class TravelersPackPatches
 {
+    private static bool usingBackpack = false;
+
     [HarmonyPrefix]
     [HarmonyPatch(typeof(ItemTool), nameof(ItemTool.SocketItem))]
-    public static bool DisableSocketAudio(ItemTool __instance, OWItemSocket socket)
+    public static void DisableInsertAudioPrefix(OWItemSocket socket)
     {
-        if (socket is BackpackItemSocket)
+        usingBackpack = socket is BackpackItemSocket;
+    }
+
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(ItemTool), nameof(ItemTool.StartUnsocketItem))]
+    public static void DisableRemoveAudioPrefix(OWItemSocket socket)
+    {
+        usingBackpack = socket is BackpackItemSocket;
+    }
+
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(PlayerAudioController), nameof(PlayerAudioController.PlayInsertItem))]
+    public static bool DisableItemInsertAudio()
+    {
+        if (usingBackpack)
         {
-            //Locator.GetPlayerAudioController().PlayInsertItem(this._heldItem.GetItemType());
-            socket.PlaceIntoSocket(__instance._heldItem);
-            __instance._heldItem = null;
-            Locator.GetToolModeSwapper().UnequipTool();
+            usingBackpack = false;
             return false;
         }
-
         return true;
     }
 
-    [HarmonyPostfix]
-    [HarmonyPatch(typeof(PlayerBody), nameof(PlayerBody.Awake))]
-    public static void InitializePack()
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(PlayerAudioController), nameof(PlayerAudioController.PlayRemoveItem))]
+    public static bool DisableItemRemoveAudio()
     {
-        if (LoadManager.GetCurrentScene() == OWScene.SolarSystem 
-            || LoadManager.GetCurrentScene() == OWScene.EyeOfTheUniverse)
+        if (usingBackpack)
         {
-            TravelersPack.Instance.OnPlayerLoad();
+            usingBackpack = false;
+            return false;
         }
+        return true;
     }
 }

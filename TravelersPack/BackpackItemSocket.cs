@@ -34,6 +34,11 @@ public class BackpackItemSocket : OWItemSocket
         return _maxItems;
     }
 
+    public int GetCurrentItemIndex()
+    {
+        return _storedItemIndex;
+    }
+
     public override bool PlaceIntoSocket(OWItem item)
     {
         _socketedItem = null;
@@ -108,6 +113,12 @@ public class BackpackItemSocket : OWItemSocket
                 _storedItemIndex = _storedItems.Count - 1;
             }
         }
+        _socketedItem = _storedItems[_storedItemIndex];
+    }
+
+    public void SetItemIndex(int index)
+    {
+        _storedItemIndex = Mathf.Clamp(index, 0, _storedItems.Count - 1);
         _socketedItem = _storedItems[_storedItemIndex];
     }
 
