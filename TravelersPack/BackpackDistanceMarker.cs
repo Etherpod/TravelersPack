@@ -50,7 +50,7 @@ public class BackpackDistanceMarker : HUDDistanceMarker
     {
         _lastRingWorldState = Locator.GetRingWorldController() != null && Locator.GetRingWorldController().isPlayerInside;
         _lastQuantumMoonState = _quantumMoon != null && _quantumMoon.IsPlayerInside();
-        _lastCloakState = Locator.GetCloakFieldController().isPlayerInsideCloak;
+        _lastCloakState = Locator.GetCloakFieldController() != null && Locator.GetCloakFieldController().isPlayerInsideCloak;
         if (PlayerState.GetOuterFogWarpVolume() != null && PlayerState.GetOuterFogWarpVolume().IsOuterWarpVolume())
         {
             _outerFogWarpVolume = (OuterFogWarpVolume)PlayerState.GetOuterFogWarpVolume();
