@@ -55,7 +55,7 @@ public class TravelersPack : ModBehaviour
         AssetBundleUtilities.ReplaceShaders(pack);
         _backpack = Instantiate(pack).GetComponent<BackpackController>();
 
-        _unpackPrompt = new ScreenPrompt(InputLibrary.interactSecondary, "Place Traveler's Pack", 0, ScreenPrompt.DisplayState.Normal);
+        _unpackPrompt = new ScreenPrompt(InputLibrary.autopilot, "Place Traveler's Pack", 0, ScreenPrompt.DisplayState.Normal);
 
         ModHelper.Events.Unity.RunWhen(() => Locator._promptManager != null, () =>
         {
@@ -93,7 +93,7 @@ public class TravelersPack : ModBehaviour
             bool readyToPlace = Locator.GetPlayerController().IsGrounded()
                 && !FocusedOnInteractible();
 
-            if (readyToPlace && OWInput.IsNewlyPressed(InputLibrary.interactSecondary, InputMode.Character))
+            if (readyToPlace && OWInput.IsNewlyPressed(InputLibrary.autopilot, InputMode.Character))
             {
                 _backpack.PlaceBackpack(Locator.GetPlayerTransform());
                 if (QSBHelper.InMultiplayer)
