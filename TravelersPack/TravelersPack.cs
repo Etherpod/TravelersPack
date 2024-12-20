@@ -84,7 +84,7 @@ public class TravelersPack : ModBehaviour
 
     private void Update()
     {
-        if (InGame)
+        if (InGame && _unpackPrompt != null)
         {
             _unpackPrompt.SetVisibility(false);
 
