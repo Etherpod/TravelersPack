@@ -31,7 +31,7 @@ public class BackpackController : MonoBehaviour
         _cycleItemPrompt = new ScreenPrompt(InputLibrary.toolOptionLeft, InputLibrary.toolOptionRight,
             "<CMD1><CMD2> Cycle Selected Item", 
             ScreenPrompt.MultiCommandType.CUSTOM_BOTH, 0, ScreenPrompt.DisplayState.Normal, false);
-        _packUpPrompt = new ScreenPrompt(InputLibrary.autopilot, "Pack up", 0, ScreenPrompt.DisplayState.Normal);
+        _packUpPrompt = new ScreenPrompt(TravelersPack.GetSelectedInput(), "Pack up", 0, ScreenPrompt.DisplayState.Normal);
         _emptyPrompt = new ScreenPrompt("No items stored");
         _fullPrompt = new ScreenPrompt("Backpack is full");
         _equipPackClip = TravelersPack.LoadAudio("Assets/TravelersPack/EquipPack.ogg");
@@ -121,7 +121,7 @@ public class BackpackController : MonoBehaviour
         if (_interactVolumeFocus && OWInput.IsInputMode(InputMode.Character))
         {
             _packUpPrompt.SetVisibility(true);
-            if (OWInput.IsNewlyPressed(InputLibrary.autopilot))
+            if (OWInput.IsNewlyPressed(TravelersPack.GetSelectedInput()))
             {
                 RetrieveBackpack(Locator.GetPlayerTransform(), true);
                 if (QSBHelper.InMultiplayer)
@@ -240,6 +240,14 @@ public class BackpackController : MonoBehaviour
         _ownsPack = ownsPack;
 
         OnRetrieveBackpack?.Invoke();
+    }
+
+    public void RefreshPromptCommand()
+    {
+        _packUpPrompt._commandIdList[0] = TravelersPack.GetSelectedInput().CommandType;
+        _packUpPrompt.RefreshCommandList();
+
+        Locator.GetPromptManager().TriggerRebuild(_packUpPrompt);
     }
 
     private void OnDestroy()

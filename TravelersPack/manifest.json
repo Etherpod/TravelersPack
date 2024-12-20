@@ -4,7 +4,7 @@
   "author": "Etherpod",
   "name": "Traveler's Pack",
   "uniqueName": "Etherpod.TravelersPack",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "owmlVersion": "2.14.0",
   "dependencies": []
 }

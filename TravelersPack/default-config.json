@@ -2,6 +2,20 @@
   "$schema": "https://raw.githubusercontent.com/ow-mods/owml/master/schemas/config_schema.json",
   "enabled": true,
   "settings": {
+    "unpackKeybind": {
+      "title": "Unpack Keybind",
+      "type": "selector",
+      "value": "Autopilot",
+      "options": [
+        "Autopilot",
+        "Interact",
+        "Alt Interact",
+        "Free Look",
+        "Tool Primary",
+        "Tool Secondary"
+      ],
+      "tooltip": "Sets the keybind that should place down the backpack. Change this if you encounter mod conflicts."
+    },
     "enableMapMarker": {
       "title": "Enable HUD Marker",
       "type": "toggle",

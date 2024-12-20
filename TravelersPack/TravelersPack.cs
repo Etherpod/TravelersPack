@@ -9,7 +9,7 @@ namespace TravelersPack;
 
 public class TravelersPack : ModBehaviour
 {
-    private readonly bool debugEnabled = true;
+    private readonly bool debugEnabled = false;
 
     public static TravelersPack Instance;
 
@@ -19,6 +19,7 @@ public class TravelersPack : ModBehaviour
     private BackpackController _backpack;
     private ScreenPrompt _unpackPrompt;
     private FirstPersonManipulator _manipulator;
+    private string _selectedInputName;
     private bool InGame => LoadManager.GetCurrentScene() == OWScene.SolarSystem ||
         LoadManager.GetCurrentScene() == OWScene.EyeOfTheUniverse;
 
@@ -33,6 +34,7 @@ public class TravelersPack : ModBehaviour
 
         _assetBundle = AssetBundle.LoadFromFile(Path.Combine(ModHelper.Manifest.ModFolderPath, "assets/travelerspack"));
         MarkerEnabled = ModHelper.Config.GetSettingsValue<bool>("enableMapMarker");
+        _selectedInputName = ModHelper.Config.GetSettingsValue<string>("unpackKeybind");
         QSBHelper.Initialize();
 
         // Example of accessing game code.
@@ -55,7 +57,7 @@ public class TravelersPack : ModBehaviour
         AssetBundleUtilities.ReplaceShaders(pack);
         _backpack = Instantiate(pack).GetComponent<BackpackController>();
 
-        _unpackPrompt = new ScreenPrompt(InputLibrary.autopilot, "Place Traveler's Pack", 0, ScreenPrompt.DisplayState.Normal);
+        _unpackPrompt = new ScreenPrompt(GetSelectedInput(), "Place Traveler's Pack", 0, ScreenPrompt.DisplayState.Normal);
 
         ModHelper.Events.Unity.RunWhen(() => Locator._promptManager != null, () =>
         {
@@ -74,6 +76,9 @@ public class TravelersPack : ModBehaviour
         if (previousScene == OWScene.SolarSystem || previousScene == OWScene.EyeOfTheUniverse)
         {
             Locator.GetPromptManager().RemoveScreenPrompt(_unpackPrompt);
+            _backpack = null;
+            _unpackPrompt = null;
+            _manipulator = null;
         }
     }
 
@@ -93,7 +98,7 @@ public class TravelersPack : ModBehaviour
             bool readyToPlace = Locator.GetPlayerController().IsGrounded()
                 && !FocusedOnInteractible();
 
-            if (readyToPlace && OWInput.IsNewlyPressed(InputLibrary.autopilot, InputMode.Character))
+            if (readyToPlace && OWInput.IsNewlyPressed(GetSelectedInput(), InputMode.Character))
             {
                 _backpack.PlaceBackpack(Locator.GetPlayerTransform());
                 if (QSBHelper.InMultiplayer)
@@ -117,10 +122,13 @@ public class TravelersPack : ModBehaviour
 
     public bool FocusedOnInteractible()
     {
+        bool usingTool = !Locator.GetToolModeSwapper()?.IsInToolMode(ToolMode.None) ?? false;
+        bool usingToolInput = GetSelectedInput() == InputLibrary.toolActionPrimary || GetSelectedInput() == InputLibrary.toolActionSecondary;
         return _manipulator.HasFocusedInteractible()
             || _manipulator.GetFocusedNomaiText() != null
             || _manipulator.GetFocusedItemSocket() != null
-            || _manipulator.GetFocusedOWItem() != null;
+            || _manipulator.GetFocusedOWItem() != null
+            || (usingToolInput && usingTool);
     }
 
     public static AudioClip LoadAudio(string filepath)
@@ -131,6 +139,20 @@ public class TravelersPack : ModBehaviour
     public BackpackController GetBackpack()
     {
         return _backpack;
+    }
+
+    public static IInputCommands GetSelectedInput()
+    {
+        return Instance._selectedInputName switch
+        {
+            "Autopilot" => InputLibrary.autopilot,
+            "Interact" => InputLibrary.interact,
+            "Alt Interact" => InputLibrary.interactSecondary,
+            "Free Look" => InputLibrary.freeLook,
+            "Tool Primary" => InputLibrary.toolActionPrimary,
+            "Tool Secondary" => InputLibrary.toolActionSecondary,
+            _ => null,
+        };
     }
 
     public static void WriteDebugMessage(object msg)
@@ -144,8 +166,19 @@ public class TravelersPack : ModBehaviour
     public override void Configure(IModConfig config)
     {
         MarkerEnabled = config.GetSettingsValue<bool>("enableMapMarker");
+        _selectedInputName = config.GetSettingsValue<string>("unpackKeybind");
+
+        if (_unpackPrompt != null)
+        {
+            _unpackPrompt._commandIdList[0] = GetSelectedInput().CommandType;
+            _unpackPrompt.RefreshCommandList();
+
+            Locator.GetPromptManager().TriggerRebuild(_unpackPrompt);
+        }
+
         if (_backpack != null)
         {
+            _backpack.RefreshPromptCommand();
             _backpack.GetComponent<BackpackDistanceMarker>().RefreshOwnVisibility();
         }
     }
