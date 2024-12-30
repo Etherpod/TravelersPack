@@ -139,8 +139,7 @@ public class BackpackController : MonoBehaviour
         OWItem item = Locator.GetToolModeSwapper().GetItemCarryTool().GetHeldItem();
         if (item != null)
         {
-            Locator.GetToolModeSwapper().GetItemCarryTool().SocketItem(_socket);
-            _oneShotAudio.PlayOneShot(AudioType.ToolTranslatorUnequip);
+
         }
         else
         {
@@ -206,6 +205,32 @@ public class BackpackController : MonoBehaviour
     {
         Locator.GetToolModeSwapper().GetItemCarryTool().StartUnsocketItem(_socket);
         _oneShotAudio.PlayOneShot(AudioType.ToolTranslatorEquip);
+    }
+
+    public bool RemoveItem(OWItem item)
+    {
+        if (_socket.ContainsItem(item))
+        {
+            return _socket.RemoveFromSocket() != null;
+        }
+
+        return false;
+    }
+
+    public BackpackItemSocket GetItemSocket()
+    {
+        return _socket;
+    }
+
+    public bool AddItem(OWItem item)
+    {
+        if (!_socket.CanAddItems())
+        {
+            return false;
+        }
+        _socket.PlaceIntoSocket(item);
+        _oneShotAudio.PlayOneShot(AudioType.ToolTranslatorUnequip);
+        return true;
     }
 
     private void SetInteractVisibility(bool visible)

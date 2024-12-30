@@ -29,6 +29,11 @@ public class BackpackItemSocket : OWItemSocket
         return _storedItems.Count;
     }
 
+    public OWItem[] GetStoredItems()
+    {
+        return [.. _storedItems];
+    }
+
     public int GetMaxItems()
     {
         return _maxItems;
@@ -37,6 +42,11 @@ public class BackpackItemSocket : OWItemSocket
     public int GetCurrentItemIndex()
     {
         return _storedItemIndex;
+    }
+
+    public bool ContainsItem(OWItem item)
+    {
+        return _storedItems.Contains(item);
     }
 
     public override bool PlaceIntoSocket(OWItem item)
