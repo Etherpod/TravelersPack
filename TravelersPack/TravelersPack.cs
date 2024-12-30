@@ -78,6 +78,7 @@ public class TravelersPack : ModBehaviour
         if (previousScene == OWScene.SolarSystem || previousScene == OWScene.EyeOfTheUniverse)
         {
             Locator.GetPromptManager().RemoveScreenPrompt(_unpackPrompt);
+            PlacingEnabled = true;
             _backpack = null;
             _unpackPrompt = null;
             _manipulator = null;

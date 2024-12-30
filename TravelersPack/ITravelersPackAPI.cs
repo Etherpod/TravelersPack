@@ -39,7 +39,7 @@
     public OWItem GetSelectedItem();
 
     /// <summary>
-    /// Sets whether the backpack is able to be placed on the ground. Disabling it still allows it to be picked up.
+    /// Sets whether the backpack is able to be placed on the ground. This resets to true every loop.
     /// </summary>
     public void SetPlacingEnabled(bool enabled);
 }
