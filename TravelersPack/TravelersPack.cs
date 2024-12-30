@@ -15,6 +15,8 @@ public class TravelersPack : ModBehaviour
 
     public bool MarkerEnabled { get; private set; }
 
+    public bool PlacingEnabled = true;
+
     private AssetBundle _assetBundle;
     private BackpackController _backpack;
     private ScreenPrompt _unpackPrompt;
@@ -88,7 +90,7 @@ public class TravelersPack : ModBehaviour
         {
             _unpackPrompt.SetVisibility(false);
 
-            if (_backpack.IsVisible() || !_backpack.IsPackOwner() 
+            if (_backpack.IsVisible() || !_backpack.IsPackOwner() || !PlacingEnabled
                 || !OWInput.IsInputMode(InputMode.Character)
                 || (PlayerState.InDreamWorld() && !PlayerState.IsWearingSuit()))
             {

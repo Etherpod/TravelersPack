@@ -71,4 +71,9 @@ public class TravelersPackAPI : ITravelersPackAPI
         }
         return null;
     }
+
+    public void SetPlacingEnabled(bool enabled)
+    {
+        TravelersPack.Instance.PlacingEnabled = enabled;
+    }
 }

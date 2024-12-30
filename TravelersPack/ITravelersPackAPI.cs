@@ -37,4 +37,9 @@
     /// </summary>
     /// <returns>The currently selected item, or null if the backpack is empty.</returns>
     public OWItem GetSelectedItem();
+
+    /// <summary>
+    /// Sets whether the backpack is able to be placed on the ground. Disabling it still allows it to be picked up.
+    /// </summary>
+    public void SetPlacingEnabled(bool enabled);
 }
