@@ -182,6 +182,11 @@ public class TravelersPack : ModBehaviour
             _backpack.GetComponent<BackpackDistanceMarker>().RefreshOwnVisibility();
         }
     }
+
+    public override object GetApi()
+    {
+        return new TravelersPackAPI();
+    }
 }
 
 [HarmonyPatch]
