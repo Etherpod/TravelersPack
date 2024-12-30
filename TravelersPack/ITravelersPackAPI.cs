@@ -1,8 +1,4 @@
-﻿using System;
-
-namespace TravelersPack;
-
-public interface ITravelersPackAPI
+﻿public interface ITravelersPackAPI
 {
     /// <summary>
     /// Adds an item to the backpack if the pack isn't full.
