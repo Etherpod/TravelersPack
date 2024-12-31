@@ -30,7 +30,7 @@ public class TravelersPackAPI : ITravelersPackAPI
             OWItem[] removedItems = pack.GetItemSocket().GetStoredItems();
             if (removedItems.Length > 0)
             {
-                foreach (OWItem item in pack.GetItemSocket().GetStoredItems())
+                foreach (OWItem item in removedItems)
                 {
                     pack.RemoveItem(item);
                 }

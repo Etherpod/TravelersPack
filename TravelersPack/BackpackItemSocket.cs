@@ -49,6 +49,17 @@ public class BackpackItemSocket : OWItemSocket
         return _storedItems.Contains(item);
     }
 
+    public OWItem RemoveItem(OWItem item)
+    {
+        if (_storedItems.Contains(item))
+        {
+            _socketedItem = item;
+            _storedItemIndex = _storedItems.IndexOf(item);
+            return RemoveFromSocket();
+        }
+        return null;
+    }
+
     public override bool PlaceIntoSocket(OWItem item)
     {
         _socketedItem = null;

@@ -22,6 +22,8 @@ public class BackpackController : MonoBehaviour
     private ScreenPrompt _emptyPrompt;
     private ScreenPrompt _fullPrompt;
     private AudioClip _equipPackClip;
+    private Vector3 _lastPosition = Vector3.zero;
+    private Transform _lastParent;
 
     private void Awake()
     {
@@ -139,7 +141,8 @@ public class BackpackController : MonoBehaviour
         OWItem item = Locator.GetToolModeSwapper().GetItemCarryTool().GetHeldItem();
         if (item != null)
         {
-
+            Locator.GetToolModeSwapper().GetItemCarryTool().SocketItem(_socket);
+            _oneShotAudio.PlayOneShot(AudioType.ToolTranslatorUnequip);
         }
         else
         {
@@ -211,7 +214,14 @@ public class BackpackController : MonoBehaviour
     {
         if (_socket.ContainsItem(item))
         {
-            return _socket.RemoveFromSocket() != null;
+            OWItem removed = _socket.RemoveItem(item);
+            if (removed != null)
+            {
+                removed.SetSector(null);
+                removed.MoveAndChildToTransform(_lastParent);
+                removed.transform.localPosition = _lastPosition;
+                removed.SetColliderActivation(true);
+            }
         }
 
         return false;
@@ -249,6 +259,8 @@ public class BackpackController : MonoBehaviour
             Vector3 projected = -Vector3.ProjectOnPlane(playerForward, transform.up);
             transform.LookAt(transform.position + projected, transform.up);
             transform.parent = hit.collider.GetAttachedOWRigidbody().transform;
+            _lastParent = transform.parent;
+            _lastPosition = transform.localPosition;
             SetVisibility(true);
             _oneShotAudio.PlayOneShot(AudioType.LandingGrass);
 
