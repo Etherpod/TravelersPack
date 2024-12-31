@@ -13,3 +13,5 @@ Gives you a placeable backpack to store items in. Now you can transport all of y
 - The backpack has a map marker in case you leave it somewhere by accident. If it gets in the way or you like the idea of being able to lose all of your items, you can turn it off in the mod settings.
 
 - You can use this mod with Quantum Space Buddies, but everyone will share the same backpack. Whoever is hosting the game will start with it, and after that the backpack can be placed down and given to anyone else in the game.
+
+If you want this mod to have special interactions with your own mod, you can use the Traveler's Pack API by copying the ITravelersPackAPI file in the GitHub repository. The OWML wiki has information on using other mod's APIs in your own code.
