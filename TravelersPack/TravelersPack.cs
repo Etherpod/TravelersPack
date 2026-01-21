@@ -38,8 +38,7 @@ public class TravelersPack : ModBehaviour
         MarkerEnabled = ModHelper.Config.GetSettingsValue<bool>("enableMapMarker");
         _selectedInputName = ModHelper.Config.GetSettingsValue<string>("unpackKeybind");
         QSBHelper.Initialize();
-
-        // Example of accessing game code.
+        
         OnCompleteSceneLoad(OWScene.TitleScreen, OWScene.TitleScreen); // We start on title screen
         LoadManager.OnCompleteSceneLoad += OnCompleteSceneLoad;
         LoadManager.OnStartSceneLoad += OnStartSceneLoad;

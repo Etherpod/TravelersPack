@@ -5,7 +5,7 @@ namespace TravelersPack;
 public static class QSBHelper
 {
     public static bool InMultiplayer => _api != null && _api.GetIsInMultiplayer();
-    public static bool IsHost => _api == null || _api.GetIsHost();
+    public static bool IsHost => !InMultiplayer || _api.GetIsHost();
 
     private static IQSBAPI _api;
     private static BackpackController _backpack;
