@@ -150,6 +150,7 @@ public class TravelersPack : ModBehaviour
             "Autopilot" => InputLibrary.autopilot,
             "Interact" => InputLibrary.interact,
             "Alt Interact" => InputLibrary.interactSecondary,
+            "Cancel" => InputLibrary.cancel,
             "Free Look" => InputLibrary.freeLook,
             "Tool Primary" => InputLibrary.toolActionPrimary,
             "Tool Secondary" => InputLibrary.toolActionSecondary,
