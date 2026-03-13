@@ -6,7 +6,7 @@
       "title": "Item Limit",
       "type": "number",
       "value": 9.0,
-      "tooltip": "The number of items you can store in the backpack. Set this to -1 for unlimited storage."
+      "tooltip": "The number of items you can store in the backpack. Setting this to -1 will give you unlimited storage. This will only change at the start of the loop."
     },
     "unpackKeybind": {
       "title": "Unpack Keybind",
