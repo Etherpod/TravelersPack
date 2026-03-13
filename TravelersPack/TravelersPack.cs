@@ -13,17 +13,22 @@ public class TravelersPack : ModBehaviour
 
     public static TravelersPack Instance;
 
+    public int MaxItems { get; private set; }
     public bool MarkerEnabled { get; private set; }
+    public bool IsWarpingBackToEye => NHAPI != null && NHAPI.IsWarpingBackToEye();
 
     public bool PlacingEnabled = true;
-
+    
+    public INewHorizons NHAPI;
     private AssetBundle _assetBundle;
     private BackpackController _backpack;
     private ScreenPrompt _unpackPrompt;
     private FirstPersonManipulator _manipulator;
     private string _selectedInputName;
-    private bool InGame => LoadManager.GetCurrentScene() == OWScene.SolarSystem ||
-        LoadManager.GetCurrentScene() == OWScene.EyeOfTheUniverse;
+    private int _itemLimit;
+
+    private bool InGame => (LoadManager.GetCurrentScene() == OWScene.SolarSystem ||
+        LoadManager.GetCurrentScene() == OWScene.EyeOfTheUniverse) && !IsWarpingBackToEye;
 
     public void Awake()
     {
@@ -39,6 +44,11 @@ public class TravelersPack : ModBehaviour
         _selectedInputName = ModHelper.Config.GetSettingsValue<string>("unpackKeybind");
         QSBHelper.Initialize();
         
+        if (ModHelper.Interaction.ModExists("xen.NewHorizons"))
+        {
+            NHAPI = ModHelper.Interaction.TryGetModApi<INewHorizons>("xen.NewHorizons");
+        }
+        
         OnCompleteSceneLoad(OWScene.TitleScreen, OWScene.TitleScreen); // We start on title screen
         LoadManager.OnCompleteSceneLoad += OnCompleteSceneLoad;
         LoadManager.OnStartSceneLoad += OnStartSceneLoad;
@@ -48,18 +58,24 @@ public class TravelersPack : ModBehaviour
 
     public void OnCompleteSceneLoad(OWScene previousScene, OWScene newScene)
     {
-        if (newScene != OWScene.SolarSystem && newScene != OWScene.EyeOfTheUniverse)
+        if ((newScene != OWScene.SolarSystem && newScene != OWScene.EyeOfTheUniverse) ||
+            IsWarpingBackToEye)
         {
             enabled = false;
             return;
         }
 
+        if (!QSBHelper.InMultiplayer || QSBHelper.IsHost)
+        {
+            MaxItems = _itemLimit;
+        }
+        
         GameObject pack = (GameObject)_assetBundle.LoadAsset("Assets/TravelersPack/Backpack.prefab");
         AssetBundleUtilities.ReplaceShaders(pack);
         _backpack = Instantiate(pack).GetComponent<BackpackController>();
 
         _unpackPrompt = new ScreenPrompt(GetSelectedInput(), "Place Traveler's Pack", 0, ScreenPrompt.DisplayState.Normal);
-
+        
         ModHelper.Events.Unity.RunWhen(() => Locator._promptManager != null, () =>
         {
             Locator.GetPromptManager().AddScreenPrompt(_unpackPrompt, PromptPosition.UpperLeft, false);
@@ -74,9 +90,11 @@ public class TravelersPack : ModBehaviour
 
     public void OnStartSceneLoad(OWScene previousScene, OWScene newScene)
     {
+        if (IsWarpingBackToEye) return;
+        
         if (previousScene == OWScene.SolarSystem || previousScene == OWScene.EyeOfTheUniverse)
         {
-            Locator.GetPromptManager().RemoveScreenPrompt(_unpackPrompt);
+            Locator.GetPromptManager()?.RemoveScreenPrompt(_unpackPrompt);
             PlacingEnabled = true;
             _backpack = null;
             _unpackPrompt = null;
@@ -168,6 +186,7 @@ public class TravelersPack : ModBehaviour
 
     public override void Configure(IModConfig config)
     {
+        _itemLimit = Mathf.FloorToInt(config.GetSettingsValue<float>("itemLimit"));
         MarkerEnabled = config.GetSettingsValue<bool>("enableMapMarker");
         _selectedInputName = config.GetSettingsValue<string>("unpackKeybind");
 
@@ -186,6 +205,15 @@ public class TravelersPack : ModBehaviour
         }
     }
 
+    public void SetItemLimitRemote(int limit)
+    {
+        MaxItems = limit;
+        if (_backpack != null)
+        {
+            _backpack.GetItemSocket().SetMaxItemsRemote(limit);
+        }
+    }
+    
     public override object GetApi()
     {
         return new TravelersPackAPI();

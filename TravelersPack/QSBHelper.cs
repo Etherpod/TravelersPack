@@ -17,6 +17,8 @@ public static class QSBHelper
         _api = TravelersPack.Instance.ModHelper.Interaction.TryGetModApi<IQSBAPI>("Raicuparta.QuantumSpaceBuddies");
         if (_api != null)
         {
+            _api.OnPlayerJoin().AddListener(OnPlayerJoin);
+            _api.RegisterHandler<int>("send-item-limit", ReceiveItemLimit);
             _api.RegisterHandler<uint>("unpack", ReceiveUnpack);
             _api.RegisterHandler<uint>("retrieve", ReceiveRetrieve);
             _api.RegisterHandler<int>("take-item", ReceiveTakeItem);
@@ -26,6 +28,32 @@ public static class QSBHelper
     public static void Start()
     {
         _backpack = TravelersPack.Instance.GetBackpack();
+        
+        if (IsHost)
+        {
+            foreach (var id in ConnectedIDs)
+            {
+                SendItemLimit(id, TravelersPack.Instance.MaxItems);
+            }
+        }
+    }
+
+    private static void OnPlayerJoin(uint id)
+    {
+        if (IsHost)
+        {
+            SendItemLimit(id, TravelersPack.Instance.MaxItems);
+        }
+    }
+
+    public static void SendItemLimit(uint to, int limit)
+    {
+        _api.SendMessage("send-item-limit", limit, to);
+    }
+
+    private static void ReceiveItemLimit(uint from, int limit)
+    {
+        TravelersPack.Instance.SetItemLimitRemote(limit);
     }
 
     public static void SendUnpackMessage()

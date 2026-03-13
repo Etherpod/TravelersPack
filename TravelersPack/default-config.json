@@ -2,6 +2,12 @@
   "$schema": "https://raw.githubusercontent.com/ow-mods/owml/master/schemas/config_schema.json",
   "enabled": true,
   "settings": {
+    "itemLimit": {
+      "title": "Item Limit",
+      "type": "number",
+      "value": 9.0,
+      "tooltip": "The number of items you can store in the backpack. Set this to -1 for unlimited storage."
+    },
     "unpackKeybind": {
       "title": "Unpack Keybind",
       "type": "selector",

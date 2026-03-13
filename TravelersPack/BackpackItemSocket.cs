@@ -5,9 +5,9 @@ namespace TravelersPack;
 
 public class BackpackItemSocket : OWItemSocket
 {
-    private List<OWItem> _storedItems = [];
+    private readonly List<OWItem> _storedItems = [];
     private int _storedItemIndex;
-    private readonly int _maxItems = 9;
+    private int _maxItems = TravelersPack.Instance.MaxItems;
 
     public override bool AcceptsItem(OWItem item)
     {
@@ -21,7 +21,7 @@ public class BackpackItemSocket : OWItemSocket
 
     public bool CanAddItems()
     {
-        return _storedItems.Count < _maxItems;
+        return _maxItems < 0 || _storedItems.Count < _maxItems;
     }
 
     public int GetNumberOfStoredItems()
@@ -37,6 +37,11 @@ public class BackpackItemSocket : OWItemSocket
     public int GetMaxItems()
     {
         return _maxItems;
+    }
+
+    public void SetMaxItemsRemote(int limit)
+    {
+        _maxItems = limit;
     }
 
     public int GetCurrentItemIndex()
