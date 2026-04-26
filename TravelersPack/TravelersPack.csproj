@@ -19,7 +19,7 @@
     <Message Text="Copy complete" Importance="High" />
   </Target>
   <ItemGroup>
-    <PackageReference Include="OWML" Version="2.15.4"/>
+    <PackageReference Include="OWML" Version="2.16.0"/>
     <PackageReference Include="OuterWildsGameLibs" Version="1.1.16.1372"/>
   </ItemGroup>
   <ItemGroup>

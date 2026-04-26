@@ -8,21 +8,6 @@
       "value": 9.0,
       "tooltip": "The number of items you can store in the backpack. Setting this to -1 will give you unlimited storage. This will only change at the start of the loop."
     },
-    "unpackKeybind": {
-      "title": "Unpack Keybind",
-      "type": "selector",
-      "value": "Autopilot",
-      "options": [
-        "Autopilot",
-        "Interact",
-        "Alt Interact",
-        "Cancel",
-        "Free Look",
-        "Tool Primary",
-        "Tool Secondary"
-      ],
-      "tooltip": "Sets the keybind that should place down the backpack. Change this if you encounter mod conflicts."
-    },
     "enableMapMarker": {
       "title": "Enable HUD Marker",
       "type": "toggle",

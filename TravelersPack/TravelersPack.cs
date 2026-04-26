@@ -3,7 +3,9 @@ using OWML.Common;
 using OWML.ModHelper;
 using System.IO;
 using System.Reflection;
+using OWML.Common.Enums;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace TravelersPack;
 
@@ -24,7 +26,7 @@ public class TravelersPack : ModBehaviour
     private BackpackController _backpack;
     private ScreenPrompt _unpackPrompt;
     private FirstPersonManipulator _manipulator;
-    private string _selectedInputName;
+    private InputConsts.InputCommandType _unpackInput;
     private int _itemLimit;
 
     private bool InGame => (LoadManager.GetCurrentScene() == OWScene.SolarSystem ||
@@ -39,9 +41,13 @@ public class TravelersPack : ModBehaviour
     {
         new Harmony("Etherpod.TravelersPack").PatchAll(Assembly.GetExecutingAssembly());
 
+        _unpackInput = ModHelper.RebindingHelper.RegisterRebindable("Unpack Binding", 
+            "The button that places the backpack down at your feet.", 
+            Key.X,GamepadBinding.DPadDown, 
+            false, 0f);
+
         _assetBundle = AssetBundle.LoadFromFile(Path.Combine(ModHelper.Manifest.ModFolderPath, "assets/travelerspack"));
         MarkerEnabled = ModHelper.Config.GetSettingsValue<bool>("enableMapMarker");
-        _selectedInputName = ModHelper.Config.GetSettingsValue<string>("unpackKeybind");
         QSBHelper.Initialize();
         
         if (ModHelper.Interaction.ModExists("xen.NewHorizons"))
@@ -74,7 +80,7 @@ public class TravelersPack : ModBehaviour
         AssetBundleUtilities.ReplaceShaders(pack);
         _backpack = Instantiate(pack).GetComponent<BackpackController>();
 
-        _unpackPrompt = new ScreenPrompt(GetSelectedInput(), "Place Traveler's Pack", 0, ScreenPrompt.DisplayState.Normal);
+        _unpackPrompt = new ScreenPrompt(GetSelectedInput(), "Place Traveler's Pack");
         
         ModHelper.Events.Unity.RunWhen(() => Locator._promptManager != null, () =>
         {
@@ -141,14 +147,11 @@ public class TravelersPack : ModBehaviour
     }
 
     public bool FocusedOnInteractible()
-    {
-        bool usingTool = !Locator.GetToolModeSwapper()?.IsInToolMode(ToolMode.None) ?? false;
-        bool usingToolInput = GetSelectedInput() == InputLibrary.toolActionPrimary || GetSelectedInput() == InputLibrary.toolActionSecondary;
+    { 
         return _manipulator.HasFocusedInteractible()
             || _manipulator.GetFocusedNomaiText() != null
             || _manipulator.GetFocusedItemSocket() != null
-            || _manipulator.GetFocusedOWItem() != null
-            || (usingToolInput && usingTool);
+            || _manipulator.GetFocusedOWItem() != null;
     }
 
     public static AudioClip LoadAudio(string filepath)
@@ -163,17 +166,7 @@ public class TravelersPack : ModBehaviour
 
     public static IInputCommands GetSelectedInput()
     {
-        return Instance._selectedInputName switch
-        {
-            "Autopilot" => InputLibrary.autopilot,
-            "Interact" => InputLibrary.interact,
-            "Alt Interact" => InputLibrary.interactSecondary,
-            "Cancel" => InputLibrary.cancel,
-            "Free Look" => InputLibrary.freeLook,
-            "Tool Primary" => InputLibrary.toolActionPrimary,
-            "Tool Secondary" => InputLibrary.toolActionSecondary,
-            _ => null,
-        };
+        return InputLibrary.GetInputCommand(Instance._unpackInput);
     }
 
     public static void WriteDebugMessage(object msg)
@@ -188,7 +181,6 @@ public class TravelersPack : ModBehaviour
     {
         _itemLimit = Mathf.FloorToInt(config.GetSettingsValue<float>("itemLimit"));
         MarkerEnabled = config.GetSettingsValue<bool>("enableMapMarker");
-        _selectedInputName = config.GetSettingsValue<string>("unpackKeybind");
 
         if (_unpackPrompt != null)
         {
