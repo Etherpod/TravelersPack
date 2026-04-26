@@ -41,7 +41,7 @@ public class TravelersPack : ModBehaviour
     {
         new Harmony("Etherpod.TravelersPack").PatchAll(Assembly.GetExecutingAssembly());
 
-        _unpackInput = ModHelper.RebindingHelper.RegisterRebindable("Unpack Binding", 
+        _unpackInput = ModHelper.RebindingHelper.RegisterRebindable("Unpack Button", 
             "The button that places the backpack down at your feet.", 
             Key.X,GamepadBinding.DPadDown, 
             false, 0f);
